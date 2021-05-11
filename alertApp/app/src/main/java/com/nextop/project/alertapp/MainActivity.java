@@ -11,6 +11,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -31,7 +33,10 @@ public class MainActivity extends AppCompatActivity {
     MySoundPlayer ms;
     TextView tv;
     ImageView iv;
-    boolean condition = true;
+    EditText et;
+    Button bt;
+    String url = "192.168.1.25";
+    boolean condition = false;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -41,18 +46,38 @@ public class MainActivity extends AppCompatActivity {
 
         tv = (TextView) findViewById(R.id.status);
         iv = (ImageView) findViewById(R.id.pillImage);
+        et = (EditText) findViewById(R.id.url);
+        bt = (Button) findViewById(R.id.button_info);
         ms.initSounds(getApplicationContext());
-        th = new MyThread();
+        et.setText("" + url);
+        tv.setText("Initiate process at : " + url);
+        bt.setText("Initiate");
     }
 
     public void getinfordata(View view) {
-        th.start();
+        if(condition == false) {
+            condition = true;
+            th = new MyThread();
+            th.start();
+            bt.setText("Stop");
+        }
+        else{
+            condition = false;
+            tv.setText("Initiate process at : " + url);
+            bt.setText("Initiate");
+        }
+    }
+
+    public void changeUrl(View view) {
+        url = et.getText().toString();
+        et.setText("" + url);
+        tv.setText("Initiate process at : " + url);
     }
 
     class MyThread extends Thread {
         public void run() {
             while(condition) {
-                new JsonTask(tv,iv,ms).execute("http://192.168.1.25:3000/curStat");
+                new JsonTask(tv,iv,ms).execute("http://"+url+":3000/curStat");
 
                 try {
                     Thread.sleep(100);
@@ -141,7 +166,7 @@ class JsonTask extends AsyncTask<String, String, String> {
     protected void onPostExecute(String result) {
         super.onPostExecute(result);
         Log.e("JsonTask","Result : " + result);
-        tv.setText(sUrl.toString() + "\n" + "Result : " + result);
+        tv.setText(sUrl.toString() + "에서 현재 상태를 검사중입니다.");
         iv.setImageResource(R.drawable.nopill);
 
         if(result.contains("true")) {
