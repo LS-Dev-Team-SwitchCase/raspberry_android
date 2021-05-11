@@ -5,11 +5,13 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -26,7 +28,8 @@ import java.text.BreakIterator;
 public class MainActivity extends AppCompatActivity {
 
     MySoundPlayer ms;
-    public TextView tv;
+    TextView tv;
+    ImageView iv;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -34,7 +37,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        tv = (TextView) findViewById(R.id.status) ;
+        tv = (TextView) findViewById(R.id.status);
+        iv = (ImageView) findViewById(R.id.pillImage);
         ms.initSounds(getApplicationContext());
     }
 
@@ -43,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 while(true) {
-                    new JsonTask(tv,ms).execute("http://192.168.1.25:3000/curStat");
+                    new JsonTask(tv,iv,ms).execute("http://192.168.1.25:3000/curStat");
 
                     try {
                         Thread.sleep(100);
@@ -59,11 +63,13 @@ public class MainActivity extends AppCompatActivity {
 class JsonTask extends AsyncTask<String, String, String> {
 
     URL sUrl;
-    public TextView tv;
+    TextView tv;
+    ImageView iv;
     MySoundPlayer ms;
 
-    public JsonTask(TextView tv, MySoundPlayer ms){
+    public JsonTask(TextView tv, ImageView iv, MySoundPlayer ms){
         this.tv = tv;
+        this.iv = iv;
         this.ms = ms;
     }
 
@@ -126,9 +132,12 @@ class JsonTask extends AsyncTask<String, String, String> {
         super.onPostExecute(result);
         Log.e("JsonTask","Result : " + result);
         tv.setText(sUrl.toString() + "\n" + "Result : " + result);
+        iv.setImageResource(R.drawable.nopill);
+
         if(result.contains("true")) {
             ms.play(MySoundPlayer.DING_DONG);
-            tv.setText("스마트 약통에서 약을 꺼내주세요!");
+            tv.setText("약을 꺼내주세요!");
+            iv.setImageResource(R.drawable.pill);
         }
     }
 }
