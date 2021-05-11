@@ -1,10 +1,12 @@
 package com.nextop.project.alertapp;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -23,14 +25,17 @@ import java.text.BreakIterator;
 
 public class MainActivity extends AppCompatActivity {
 
+    MySoundPlayer ms;
     public TextView tv;
 
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         tv = (TextView) findViewById(R.id.status) ;
+        ms.initSounds(getApplicationContext());
     }
 
     public void getinfordata(View view) {
@@ -38,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 while(true) {
-                    new JsonTask(tv).execute("http://192.168.1.25:3000/curStat");
+                    new JsonTask(tv,ms).execute("http://192.168.1.25:3000/curStat");
 
                     try {
                         Thread.sleep(100);
@@ -55,9 +60,11 @@ class JsonTask extends AsyncTask<String, String, String> {
 
     URL sUrl;
     public TextView tv;
+    MySoundPlayer ms;
 
-    public JsonTask(TextView tv){
+    public JsonTask(TextView tv, MySoundPlayer ms){
         this.tv = tv;
+        this.ms = ms;
     }
 
     protected void onPreExecute() {
@@ -119,5 +126,9 @@ class JsonTask extends AsyncTask<String, String, String> {
         super.onPostExecute(result);
         Log.e("JsonTask","Result : " + result);
         tv.setText(sUrl.toString() + "\n" + "Result : " + result);
+        if(result.contains("true")) {
+            ms.play(MySoundPlayer.DING_DONG);
+            tv.setText("스마트 약통에서 약을 꺼내주세요!");
+        }
     }
 }
