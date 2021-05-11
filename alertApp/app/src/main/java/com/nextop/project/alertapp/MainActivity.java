@@ -27,9 +27,11 @@ import java.text.BreakIterator;
 
 public class MainActivity extends AppCompatActivity {
 
+    MyThread th;
     MySoundPlayer ms;
     TextView tv;
     ImageView iv;
+    boolean condition = true;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -40,23 +42,31 @@ public class MainActivity extends AppCompatActivity {
         tv = (TextView) findViewById(R.id.status);
         iv = (ImageView) findViewById(R.id.pillImage);
         ms.initSounds(getApplicationContext());
+        th = new MyThread();
     }
 
     public void getinfordata(View view) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while(true) {
-                    new JsonTask(tv,iv,ms).execute("http://192.168.1.25:3000/curStat");
+        th.start();
+    }
 
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+    class MyThread extends Thread {
+        public void run() {
+            while(condition) {
+                new JsonTask(tv,iv,ms).execute("http://192.168.1.25:3000/curStat");
+
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
-        }).start();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        condition = false;
     }
 }
 
